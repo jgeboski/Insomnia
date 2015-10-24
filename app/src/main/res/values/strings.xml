@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Insomnia</string>
+    <string name="icon">Icon</string>
+    <string name="status">Status</string>
 </resources>
