@@ -1,0 +1,17 @@
+An android application for keeping the screen of a device awake.
+
+## Building
+
+The application uses the gradle build tool, which must be installed on
+the system before building the application.
+
+Begin by checking out the source tree:
+
+    $ git clone https://github.com/jgeboski/Insomnia.git
+    $ cd Insomnia
+
+Now invoke the build process with gradle:
+
+    $ gradle assembleDebug
+
+The APK will now reside at `app/build/outputs/apk/app-debug.apk`.
