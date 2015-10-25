@@ -12,6 +12,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import java.util.Collections;
 import java.util.List;
 
 import com.github.jgeboski.insomnia.AppItem;
@@ -29,6 +30,7 @@ public class MainActivity
 
         ListView lview = (ListView) findViewById(R.id.list_apps);
         List<AppItem> items = Insomnia.getAppItems(this);
+        Collections.sort(items, AppItem.getComparator(this));
 
         AppItemList list = new AppItemList(this, R.layout.item_app, items);
         lview.setAdapter(list);
