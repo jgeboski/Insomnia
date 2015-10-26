@@ -14,8 +14,13 @@ public class Insomnia
         PackageManager pm = context.getPackageManager();
         List<ApplicationInfo> infos = pm.getInstalledApplications(0);
         List<AppItem> items = new ArrayList<>(infos.size());
+        String pname = context.getPackageName();
 
         for (ApplicationInfo info : infos) {
+            if (pname.equals(info.packageName)) {
+                continue;
+            }
+
             Intent intent =  pm.getLaunchIntentForPackage(info.packageName);
 
             if (intent != null) {
