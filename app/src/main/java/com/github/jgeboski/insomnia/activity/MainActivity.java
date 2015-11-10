@@ -15,8 +15,8 @@ import android.widget.TextView;
 import java.util.Collections;
 import java.util.List;
 
-import com.github.jgeboski.insomnia.AppItem;
 import com.github.jgeboski.insomnia.Insomnia;
+import com.github.jgeboski.insomnia.model.AppItem;
 import com.github.jgeboski.insomnia.R;
 
 public class MainActivity
@@ -30,7 +30,7 @@ public class MainActivity
 
         ListView lview = (ListView) findViewById(R.id.list_apps);
         List<AppItem> items = Insomnia.getAppItems(this);
-        Collections.sort(items, AppItem.getComparator(this));
+        Collections.sort(items);
 
         AppItemList list = new AppItemList(this, R.layout.item_app, items);
         lview.setAdapter(list);
@@ -68,19 +68,13 @@ class AppItemList
 
         iview = (ImageView) view.findViewById(R.id.item_app_icon);
         tview = (TextView) view.findViewById(R.id.item_app_label);
+        tview.setText(item.label);
 
         try {
             Drawable icon = item.getIcon(context);
             iview.setImageDrawable(icon);
         } catch (NameNotFoundException e) {
             iview.setImageDrawable(null);
-        }
-
-        try {
-            String label = item.getLabel(context);
-            tview.setText(label);
-        } catch (NameNotFoundException e) {
-            tview.setText("");
         }
 
         return view;

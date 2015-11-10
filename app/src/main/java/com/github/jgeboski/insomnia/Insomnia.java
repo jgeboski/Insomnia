@@ -4,8 +4,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.github.jgeboski.insomnia.model.AppItem;
 
 public class Insomnia
 {
@@ -21,11 +24,16 @@ public class Insomnia
                 continue;
             }
 
-            Intent intent =  pm.getLaunchIntentForPackage(info.packageName);
+            Intent intent = pm.getLaunchIntentForPackage(info.packageName);
 
-            if (intent != null) {
-                AppItem item = new AppItem(info.packageName);
+            if (intent == null) {
+                continue;
+            }
+
+            try {
+                AppItem item = new AppItem(context, info.packageName);
                 items.add(item);
+            } catch (NameNotFoundException e) {
             }
         }
 
