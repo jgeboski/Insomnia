@@ -1,5 +1,8 @@
 package com.github.jgeboski.insomnia.activity;
 
+import java.util.Collections;
+import java.util.List;
+
 import android.content.Context;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.drawable.Drawable;
@@ -12,8 +15,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import java.util.Collections;
-import java.util.List;
 
 import com.github.jgeboski.insomnia.Insomnia;
 import com.github.jgeboski.insomnia.model.AppItem;

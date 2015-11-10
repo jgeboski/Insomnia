@@ -1,12 +1,13 @@
 package com.github.jgeboski.insomnia;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.github.jgeboski.insomnia.model.AppItem;
 
