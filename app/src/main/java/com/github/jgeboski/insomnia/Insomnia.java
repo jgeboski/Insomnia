@@ -2,42 +2,55 @@ package com.github.jgeboski.insomnia;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import android.content.Context;
-import android.content.Intent;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
 
 import com.github.jgeboski.insomnia.model.AppItem;
 
 public class Insomnia
 {
-    public static List<AppItem> getAppItems(Context context)
+    public static int SERVICE_NOTIFICATION_ID = R.string.app_name;
+
+    public static List<AppItem> getAppItems(Context context,
+                                            Map<String, AppItem> items)
     {
-        PackageManager pm = context.getPackageManager();
-        List<ApplicationInfo> infos = pm.getInstalledApplications(0);
-        List<AppItem> items = new ArrayList<>(infos.size());
-        String pname = context.getPackageName();
+        List<String> apps = Util.getApplications(context);
+        List<AppItem> ret = new ArrayList<>();
 
-        for (ApplicationInfo info : infos) {
-            if (pname.equals(info.packageName)) {
-                continue;
-            }
+        for (String a : apps) {
+            AppItem item = items.get(a);
 
-            Intent intent = pm.getLaunchIntentForPackage(info.packageName);
-
-            if (intent == null) {
+            if (item != null) {
+                ret.add(item);
                 continue;
             }
 
             try {
-                AppItem item = new AppItem(context, info.packageName);
-                items.add(item);
-            } catch (NameNotFoundException e) {
+                item = new AppItem(context, a);
+                ret.add(item);
+            } catch (PackageManager.NameNotFoundException e) {
             }
         }
 
-        return items;
+        return ret;
+    }
+
+    public static boolean hasRunningAppItems(Context context,
+                                             Map<String, AppItem> items)
+    {
+        PackageManager pm = context.getPackageManager();
+        List<String> running = Util.getRunningApps(context);
+        Set<String> apps = items.keySet();
+
+        for (String r : running) {
+            if (apps.contains(r)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

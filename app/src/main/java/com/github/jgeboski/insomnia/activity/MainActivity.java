@@ -3,81 +3,79 @@ package com.github.jgeboski.insomnia.activity;
 import java.util.Collections;
 import java.util.List;
 
-import android.content.Context;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.graphics.drawable.Drawable;
+import android.content.ComponentName;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ImageView;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
-import android.widget.TextView;
 
-import com.github.jgeboski.insomnia.Insomnia;
 import com.github.jgeboski.insomnia.model.AppItem;
 import com.github.jgeboski.insomnia.R;
+import com.github.jgeboski.insomnia.service.MainService;
+import com.github.jgeboski.insomnia.Util;
+import com.github.jgeboski.insomnia.service.MainServiceBinder;
 
 public class MainActivity
     extends AppCompatActivity
+    implements OnItemClickListener,
+               ServiceConnection
 {
+    public ListView listv;
+    public MainList list;
+    public MainService service;
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ListView lview = (ListView) findViewById(R.id.list_apps);
-        List<AppItem> items = Insomnia.getAppItems(this);
-        Collections.sort(items);
+        if (!Util.bindService(this, this, MainService.class)) {
+            Util.toast(this, R.string.failed_service_bind);
+            finish();
+            return;
+        }
 
-        AppItemList list = new AppItemList(this, R.layout.item_app, items);
-        lview.setAdapter(list);
-    }
-}
-
-class AppItemList
-    extends ArrayAdapter<AppItem>
-{
-    public AppItemList(Context context, int resource, List<AppItem> items)
-    {
-        super(context, resource, items);
+        listv = (ListView) findViewById(R.id.list_apps);
+        listv.setOnItemClickListener(this);
     }
 
     @Override
-    public View getView(int position, View view, ViewGroup parent)
+    protected void onDestroy()
     {
-        AppItem item = getItem(position);
-        Context context = getContext();
+        super.onDestroy();
+        Util.unbindService(this, this);
+    }
 
-        if (view == null) {
-            LayoutInflater vi = LayoutInflater.from(context);
-            view = vi.inflate(R.layout.item_app, null);
-        }
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder ibinder)
+    {
+        MainServiceBinder binder = (MainServiceBinder) ibinder;
+        service = binder.service;
 
-        ImageView iview = (ImageView) view.findViewById(R.id.item_app_status);
-        TextView tview = (TextView) view.findViewById(R.id.item_app_name);
-        tview.setText(item.name);
+        List<AppItem> items = service.getAppItems();
+        Collections.sort(items);
 
-        if (item.timeout >= 0) {
-            iview.setImageResource(R.drawable.enabled);
-        } else {
-            iview.setImageResource(R.drawable.disabled);
-        }
+        list = new MainList(this, R.layout.item_app, items);
+        listv.setAdapter(list);
+    }
 
-        iview = (ImageView) view.findViewById(R.id.item_app_icon);
-        tview = (TextView) view.findViewById(R.id.item_app_label);
-        tview.setText(item.label);
+    @Override
+    public void onServiceDisconnected(ComponentName name)
+    {
+        this.service = null;
+    }
 
-        try {
-            Drawable icon = item.getIcon(context);
-            iview.setImageDrawable(icon);
-        } catch (NameNotFoundException e) {
-            iview.setImageDrawable(null);
-        }
-
-        return view;
+    @Override
+    public void onItemClick(AdapterView parent, View view, int pos, long id)
+    {
+        AppItem item = list.getItem(pos);
+        item.active = !item.active;
+        service.update(item);
+        list.notifyDataSetChanged();
     }
 }

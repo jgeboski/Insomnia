@@ -11,7 +11,7 @@ public class AppItem
 {
     public String name;
     public String label;
-    public long timeout;
+    public boolean active;
 
     public AppItem(Context context, String name)
         throws NameNotFoundException
@@ -21,7 +21,7 @@ public class AppItem
 
         this.name = name;
         this.label = info.loadLabel(pm).toString();
-        this.timeout = -1;
+        this.active = false;
     }
 
     public Drawable getIcon(Context context)

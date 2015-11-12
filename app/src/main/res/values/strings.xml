@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Insomnia</string>
+    <string name="failed_service_bind">Failed to bind to service</string>
     <string name="icon">Icon</string>
     <string name="status">Status</string>
 </resources>
