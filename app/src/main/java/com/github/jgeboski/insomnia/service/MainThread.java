@@ -26,6 +26,7 @@ public class MainThread
         ContentResolver resolver = service.getContentResolver();
         int appid = service.getApplicationInfo().labelRes;
         String tag = service.getString(appid);
+        long timeout;
 
         PowerManager pm = (PowerManager)
             service.getSystemService(Context.POWER_SERVICE);
@@ -33,29 +34,39 @@ public class MainThread
 
         while (running) {
             if (Util.isScreenOn(service)) {
-                if (service.hasRunningAppItems()) {
-                    if (!lock.isHeld()) {
-                        lock.acquire();
-                    }
-                } else {
-                    if (lock.isHeld()) {
-                        lock.release();
-                    }
+                boolean hasapps = service.hasRunningAppItems();
+
+                if (hasapps && !lock.isHeld()) {
+                    lock.acquire();
+                } else if (!hasapps && lock.isHeld()) {
+                    lock.release();
                 }
+
+                /* Always refetch the timeout in case of updates */
+                String id = Settings.System.SCREEN_OFF_TIMEOUT;
+                timeout = Settings.System.getLong(resolver, id, 60000);
+
+                /* Reset before the screen sleeps */
+                timeout -= 1500;
             } else {
                 if (lock.isHeld()) {
                     lock.release();
                 }
-            }
 
-            /* Always refetch the timeout in case of updates */
-            String id = Settings.System.SCREEN_OFF_TIMEOUT;
-            long timeout = Settings.System.getLong(resolver, id, 60000);
+                timeout = Long.MAX_VALUE;
+            }
 
             try {
-                sleep(timeout - 1500);
+                sleep(timeout);
             } catch (InterruptedException e) {
             }
+        }
+    }
+
+    public void reset()
+    {
+        if (isAlive()) {
+            interrupt();
         }
     }
 

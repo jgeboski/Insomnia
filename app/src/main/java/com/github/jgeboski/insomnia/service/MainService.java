@@ -7,17 +7,20 @@ import java.util.Map;
 import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Build;
 import android.os.IBinder;
 
 import com.github.jgeboski.insomnia.Insomnia;
 import com.github.jgeboski.insomnia.model.AppItem;
+import com.github.jgeboski.insomnia.receiver.ScreenReceiver;
 
 public class MainService
     extends Service
 {
     public MainThread thread;
     public Map<String, AppItem> items;
+    public ScreenReceiver screceiver;
 
     @Override
     public IBinder onBind(Intent intent)
@@ -31,9 +34,15 @@ public class MainService
         super.onCreate();
         thread = new MainThread(this);
         items = new HashMap<>();
+        screceiver = new ScreenReceiver(this);
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
+        filter.addAction(Intent.ACTION_SCREEN_ON);
 
         Notification notice = getNotification();
         startForeground(Insomnia.SERVICE_NOTIFICATION_ID, notice);
+        registerReceiver(screceiver, filter);
         thread.start();
     }
 
@@ -42,6 +51,7 @@ public class MainService
     {
         super.onDestroy();
         thread.close();
+        unregisterReceiver(screceiver);
         stopForeground(true);
     }
 
@@ -59,6 +69,11 @@ public class MainService
     public boolean hasRunningAppItems()
     {
         return Insomnia.hasRunningAppItems(this, items);
+    }
+
+    public void reset()
+    {
+        thread.reset();
     }
 
     public void update(AppItem item)
