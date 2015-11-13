@@ -17,7 +17,7 @@ import com.github.jgeboski.insomnia.model.AppItem;
 import com.github.jgeboski.insomnia.R;
 import com.github.jgeboski.insomnia.service.MainService;
 import com.github.jgeboski.insomnia.Util;
-import com.github.jgeboski.insomnia.service.MainServiceBinder;
+import com.github.jgeboski.insomnia.service.MainBinder;
 
 public class MainActivity
     extends AppCompatActivity
@@ -54,7 +54,7 @@ public class MainActivity
     @Override
     public void onServiceConnected(ComponentName name, IBinder ibinder)
     {
-        MainServiceBinder binder = (MainServiceBinder) ibinder;
+        MainBinder binder = (MainBinder) ibinder;
         service = binder.service;
 
         List<AppItem> items = service.getAppItems();

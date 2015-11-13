@@ -25,7 +25,7 @@ public class MainService
     @Override
     public IBinder onBind(Intent intent)
     {
-        return new MainServiceBinder(this);
+        return new MainBinder(this);
     }
 
     @Override
