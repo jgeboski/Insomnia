@@ -1,10 +1,8 @@
 package com.github.jgeboski.insomnia.service;
 
-import android.content.ContentResolver;
 import android.content.Context;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
-import android.provider.Settings;
 
 import com.github.jgeboski.insomnia.Util;
 
@@ -23,7 +21,6 @@ public class MainThread
     @Override
     public void run()
     {
-        ContentResolver resolver = service.getContentResolver();
         int appid = service.getApplicationInfo().labelRes;
         String tag = service.getString(appid);
         long timeout;
@@ -42,12 +39,8 @@ public class MainThread
                     lock.release();
                 }
 
-                /* Always refetch the timeout in case of updates */
-                String id = Settings.System.SCREEN_OFF_TIMEOUT;
-                timeout = Settings.System.getLong(resolver, id, 60000);
-
                 /* Reset before the screen sleeps */
-                timeout -= 1500;
+                timeout = service.timeout - 1500;
             } else {
                 if (lock.isHeld()) {
                     lock.release();

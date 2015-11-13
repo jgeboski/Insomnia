@@ -6,10 +6,13 @@ import java.util.Map;
 
 import android.app.Notification;
 import android.app.Service;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
+import android.provider.Settings;
 
 import com.github.jgeboski.insomnia.Insomnia;
 import com.github.jgeboski.insomnia.model.AppItem;
@@ -18,9 +21,12 @@ import com.github.jgeboski.insomnia.receiver.ScreenReceiver;
 public class MainService
     extends Service
 {
+    public MainObserver observer;
     public MainThread thread;
     public Map<String, AppItem> items;
     public ScreenReceiver screceiver;
+
+    public long timeout;
 
     @Override
     public IBinder onBind(Intent intent)
@@ -32,6 +38,7 @@ public class MainService
     public void onCreate()
     {
         super.onCreate();
+        observer = new MainObserver(this);
         thread = new MainThread(this);
         items = new HashMap<>();
         screceiver = new ScreenReceiver(this);
@@ -39,6 +46,12 @@ public class MainService
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         filter.addAction(Intent.ACTION_SCREEN_ON);
+
+        ContentResolver resolver = getContentResolver();
+        String name = Settings.System.SCREEN_OFF_TIMEOUT;
+        Uri uri = Settings.System.getUriFor(name);
+        resolver.registerContentObserver(uri, true, observer);
+        reset();
 
         Notification notice = getNotification();
         startForeground(Insomnia.SERVICE_NOTIFICATION_ID, notice);
@@ -53,6 +66,9 @@ public class MainService
         thread.close();
         unregisterReceiver(screceiver);
         stopForeground(true);
+
+        ContentResolver resolver = getContentResolver();
+        resolver.unregisterContentObserver(observer);
     }
 
     @Override
@@ -73,6 +89,10 @@ public class MainService
 
     public void reset()
     {
+        ContentResolver resolver = getContentResolver();
+        String name = Settings.System.SCREEN_OFF_TIMEOUT;
+        timeout = Settings.System.getLong(resolver, name, 60000);
+
         thread.reset();
     }
 
