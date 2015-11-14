@@ -96,6 +96,11 @@ public class MainService
         return Insomnia.getAppItems(this, items);
     }
 
+    public boolean hasActiveAppItems()
+    {
+        return items.size() > 0;
+    }
+
     public boolean hasRunningAppItems()
     {
         return Insomnia.hasRunningAppItems(this, items);
@@ -120,6 +125,8 @@ public class MainService
         } else {
             items.remove(item.name);
         }
+
+        updateState();
     }
 
     private Notification getNotification()
@@ -142,7 +149,7 @@ public class MainService
 
     private void updateState()
     {
-        if (!prefs.getBoolean("active", true)) {
+        if (!prefs.getBoolean("active", true) || !hasActiveAppItems()) {
             if (thread == null) {
                 return;
             }
