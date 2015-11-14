@@ -17,7 +17,7 @@ public class Insomnia
     public static List<AppItem> getAppItems(Context context,
                                             Map<String, AppItem> items)
     {
-        List<String> apps = Util.getApplications(context);
+        Set<String> apps = Util.getApplications(context);
         List<AppItem> ret = new ArrayList<>();
 
         for (String a : apps) {
@@ -38,19 +38,59 @@ public class Insomnia
         return ret;
     }
 
-    public static boolean hasRunningAppItems(Context context,
-                                             Map<String, AppItem> items)
+    public static List<AppItem> getRunningAppItems(Context context,
+                                                   Map<String, AppItem> items)
     {
-        PackageManager pm = context.getPackageManager();
-        List<String> running = Util.getRunningApps(context);
-        Set<String> apps = items.keySet();
+        Set<String> rapps = Util.getRunningApps(context);
+        List<AppItem> ret = new ArrayList<>();
+        long time = System.currentTimeMillis();
 
-        for (String r : running) {
-            if (apps.contains(r)) {
-                return true;
+        for (AppItem i : items.values()) {
+            if (!rapps.contains(i.name)) {
+                i.reset();
+                continue;
+            }
+
+            if (i.timeout > 0) {
+                if (i.seen < 1) {
+                    i.seen = time;
+                }
+
+                if ((i.seen + i.timeout) < time) {
+                    continue;
+                }
+            }
+
+            ret.add(i);
+        }
+
+        return ret;
+    }
+
+    public static long getTimeout(List<AppItem> items, long stimeout)
+    {
+        long time = System.currentTimeMillis();
+        long timeout = stimeout - 1500;
+
+        for (AppItem i : items) {
+            if (i.timeout < 1) {
+                continue;
+            }
+
+            long itimeout = (i.seen + i.timeout) - time;
+
+            if ((itimeout > 0) && (itimeout < timeout)) {
+                timeout = itimeout;
             }
         }
 
-        return false;
+        return timeout;
+    }
+
+    public static void resetAppItems(Map<String, AppItem> items)
+    {
+        for (AppItem i : items.values()) {
+            i.reset();
+        }
     }
 }

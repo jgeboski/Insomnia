@@ -3,9 +3,10 @@ package com.github.jgeboski.insomnia;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
@@ -15,6 +16,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.os.Build;
 import android.os.PowerManager;
 import android.util.Log;
@@ -53,11 +55,11 @@ public class Util
         }
     }
 
-    public static List<String> getApplications(Context context)
+    public static Set<String> getApplications(Context context)
     {
         PackageManager pm = context.getPackageManager();
         List<ApplicationInfo> infos = pm.getInstalledApplications(0);
-        List<String> apps = new ArrayList<>();
+        Set<String> apps = new HashSet<>();
         String pname = context.getPackageName();
 
         for (ApplicationInfo i : infos) {
@@ -71,7 +73,23 @@ public class Util
         return apps;
     }
 
-    public static List<String> getRunningApps(Context context)
+    public static long[] getLongArray(Resources res, int resid)
+    {
+        String strs[] = res.getStringArray(resid);
+        long longs[] = new long[strs.length];
+
+        for (int i = 0; i < strs.length; i++) {
+            try {
+                longs[i] = Long.parseLong(strs[i]);
+            } catch (NumberFormatException e) {
+                longs[i] = 0;
+            }
+        }
+
+        return longs;
+    }
+
+    public static Set<String> getRunningApps(Context context)
     {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             return getRunningApps21(context);
@@ -182,12 +200,12 @@ public class Util
         toast(context, format, args);
     }
 
-    private static List<String> getRunningApps20(Context context)
+    private static Set<String> getRunningApps20(Context context)
     {
         ActivityManager manager = (ActivityManager)
             context.getSystemService(Context.ACTIVITY_SERVICE);
         List<RunningAppProcessInfo> procs = manager.getRunningAppProcesses();
-        List<String> apps = new ArrayList<>();
+        Set<String> apps = new HashSet<>();
 
         for (RunningAppProcessInfo p : procs) {
             apps.add(p.processName);
@@ -196,13 +214,13 @@ public class Util
         return apps;
     }
 
-    private static List<String> getRunningApps21(Context context)
+    private static Set<String> getRunningApps21(Context context)
     {
         int appid = context.getApplicationInfo().labelRes;
         String tag = context.getString(appid);
 
         File file = new File("/proc");
-        List<String> apps = new ArrayList<>();
+        Set<String> apps = new HashSet<>();
         File files[];
         int pid;
 

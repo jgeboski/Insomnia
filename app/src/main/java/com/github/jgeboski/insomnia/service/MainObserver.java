@@ -17,7 +17,7 @@ public class MainObserver
     @Override
     public void onChange(boolean selfChange)
     {
-        service.reset();
+        service.rehashSettings();
     }
 
     @Override

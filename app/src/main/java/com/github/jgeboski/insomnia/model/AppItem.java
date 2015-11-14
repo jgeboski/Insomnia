@@ -12,6 +12,8 @@ public class AppItem
     public String name;
     public String label;
     public boolean active;
+    public long timeout;
+    public long seen;
 
     public AppItem(Context context, String name)
         throws NameNotFoundException
@@ -22,6 +24,8 @@ public class AppItem
         this.name = name;
         this.label = info.loadLabel(pm).toString();
         this.active = false;
+        this.timeout = 0;
+        this.seen = 0;
     }
 
     public Drawable getIcon(Context context)
@@ -29,6 +33,11 @@ public class AppItem
     {
         PackageManager pm = context.getPackageManager();
         return pm.getApplicationIcon(name);
+    }
+
+    public void reset()
+    {
+        seen = 0;
     }
 
     @Override

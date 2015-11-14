@@ -1,10 +1,14 @@
 package com.github.jgeboski.insomnia.service;
 
+import java.util.List;
+
 import android.content.Context;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 
+import com.github.jgeboski.insomnia.Insomnia;
 import com.github.jgeboski.insomnia.Util;
+import com.github.jgeboski.insomnia.model.AppItem;
 
 public class MainThread
     extends Thread
@@ -36,14 +40,14 @@ public class MainThread
 
         while (running) {
             if (Util.isScreenOn(service)) {
-                if (service.hasRunningAppItems()) {
+                List<AppItem> items = service.getRunningAppItems();
+                timeout = Insomnia.getTimeout(items, service.timeout);
+
+                if (!items.isEmpty()) {
                     acquireLock();
                 } else {
                     releaseLock();
                 }
-
-                /* Reset before the screen sleeps */
-                timeout = service.timeout - 1500;
             } else {
                 timeout = Long.MAX_VALUE;
                 releaseLock();

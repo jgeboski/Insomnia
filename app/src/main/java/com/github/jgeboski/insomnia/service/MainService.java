@@ -55,7 +55,7 @@ public class MainService
 
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         prefs.registerOnSharedPreferenceChangeListener(this);
-        reset();
+        rehashSettings();
         updateState();
     }
 
@@ -87,7 +87,7 @@ public class MainService
         if (key.equals("active")) {
             updateState();
         } else {
-            reset();
+            rehashSettings();
         }
     }
 
@@ -96,23 +96,27 @@ public class MainService
         return Insomnia.getAppItems(this, items);
     }
 
+    public List<AppItem> getRunningAppItems()
+    {
+        return Insomnia.getRunningAppItems(this, items);
+    }
+
     public boolean hasActiveAppItems()
     {
         return items.size() > 0;
     }
 
-    public boolean hasRunningAppItems()
-    {
-        return Insomnia.hasRunningAppItems(this, items);
-    }
-
-    public void reset()
+    public void rehashSettings()
     {
         ContentResolver resolver = getContentResolver();
         String name = Settings.System.SCREEN_OFF_TIMEOUT;
         timeout = Settings.System.getLong(resolver, name, 60000);
         dimmable = prefs.getBoolean("dimmable", false);
+        reset();
+    }
 
+    public void reset()
+    {
         if (thread != null) {
             thread.reset();
         }
@@ -120,13 +124,15 @@ public class MainService
 
     public void update(AppItem item)
     {
-        if (item.active) {
+        if (item.active || (item.timeout > 0)) {
+            item.reset();
             items.put(item.name, item);
         } else {
             items.remove(item.name);
         }
 
         updateState();
+        reset();
     }
 
     private Notification getNotification()

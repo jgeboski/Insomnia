@@ -1,14 +1,18 @@
 package com.github.jgeboski.insomnia.activity;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import android.app.AlertDialog;
 import android.content.ComponentName;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -21,6 +25,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.Button;
 import android.widget.ListView;
 
@@ -32,8 +37,10 @@ import com.github.jgeboski.insomnia.service.MainBinder;
 
 public class MainActivity
     extends AppCompatActivity
-    implements OnClickListener,
+    implements DialogInterface.OnClickListener,
+               OnClickListener,
                OnItemClickListener,
+               OnItemLongClickListener,
                OnSharedPreferenceChangeListener,
                ServiceConnection
 {
@@ -42,6 +49,8 @@ public class MainActivity
     public MainList list;
     public MainService service;
     public SharedPreferences prefs;
+    public long tvalues[];
+    public int itempos;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -55,8 +64,12 @@ public class MainActivity
             return;
         }
 
+        Resources res = getResources();
+        tvalues = Util.getLongArray(res, R.array.timeout_values);
+
         listv = (ListView) findViewById(R.id.list_apps);
         listv.setOnItemClickListener(this);
+        listv.setOnItemLongClickListener(this);
 
         active = (Button) findViewById(R.id.button_active);
         active.setOnClickListener(this);
@@ -130,6 +143,41 @@ public class MainActivity
         item.active = !item.active;
         service.update(item);
         list.notifyDataSetChanged();
+    }
+
+    @Override
+    public boolean onItemLongClick(AdapterView parent, View view, int pos,
+                                   long id)
+    {
+        AppItem item = list.getItem(pos);
+        int i = Arrays.binarySearch(tvalues, item.timeout);
+        itempos = pos;
+
+        if (i < 0) {
+            i = 0;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.timeout);
+        builder.setSingleChoiceItems(R.array.timeout_items, i, this);
+        builder.setNegativeButton(android.R.string.cancel, this);
+        builder.show();
+        return true;
+    }
+
+    @Override
+    public void onClick(DialogInterface dialog, int which)
+    {
+        if (which == DialogInterface.BUTTON_NEGATIVE) {
+            dialog.dismiss();
+            return;
+        }
+
+        AppItem item = list.getItem(itempos);
+        item.timeout = tvalues[which];
+        service.update(item);
+        list.notifyDataSetChanged();
+        dialog.dismiss();
     }
 
     @Override
