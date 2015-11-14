@@ -84,7 +84,7 @@ public class MainService
     @Override
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key)
     {
-        if (key.equals("active")) {
+        if (key.equals(Insomnia.PREF_ACTIVE)) {
             updateState();
         } else {
             rehashSettings();
@@ -111,7 +111,7 @@ public class MainService
         ContentResolver resolver = getContentResolver();
         String name = Settings.System.SCREEN_OFF_TIMEOUT;
         timeout = Settings.System.getLong(resolver, name, 60000);
-        dimmable = prefs.getBoolean("dimmable", false);
+        dimmable = prefs.getBoolean(Insomnia.PREF_DIMMABLE, false);
         reset();
     }
 
@@ -155,7 +155,9 @@ public class MainService
 
     private void updateState()
     {
-        if (!prefs.getBoolean("active", true) || !hasActiveAppItems()) {
+        if (!prefs.getBoolean(Insomnia.PREF_ACTIVE, true) ||
+            !hasActiveAppItems())
+        {
             if (thread == null) {
                 return;
             }

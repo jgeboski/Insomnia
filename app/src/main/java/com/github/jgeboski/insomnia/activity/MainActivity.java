@@ -29,6 +29,7 @@ import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.Button;
 import android.widget.ListView;
 
+import com.github.jgeboski.insomnia.Insomnia;
 import com.github.jgeboski.insomnia.model.AppItem;
 import com.github.jgeboski.insomnia.R;
 import com.github.jgeboski.insomnia.service.MainService;
@@ -131,7 +132,7 @@ public class MainActivity
     @Override
     public void onSharedPreferenceChanged(SharedPreferences prefs, String key)
     {
-        if (key.equals("active")) {
+        if (key.equals(Insomnia.PREF_ACTIVE)) {
             updateActiveButton();
         }
     }
@@ -184,9 +185,9 @@ public class MainActivity
     public void onClick(View v)
     {
         Editor editor = prefs.edit();
-        boolean active = prefs.getBoolean("active", true);
+        boolean active = prefs.getBoolean(Insomnia.PREF_ACTIVE, true);
 
-        editor.putBoolean("active", !active);
+        editor.putBoolean(Insomnia.PREF_ACTIVE, !active);
         editor.apply();
         updateActiveButton();
     }
@@ -196,7 +197,7 @@ public class MainActivity
         int color;
         int text;
 
-        if (prefs.getBoolean("active", true)) {
+        if (prefs.getBoolean(Insomnia.PREF_ACTIVE, true)) {
             color = Color.GREEN;
             text = R.string.active;
         } else {

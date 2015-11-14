@@ -12,7 +12,10 @@ import com.github.jgeboski.insomnia.model.AppItem;
 
 public class Insomnia
 {
-    public static int SERVICE_NOTIFICATION_ID = R.string.app_name;
+    public static final String PREF_ACTIVE = "active";
+    public static final String PREF_BOOT = "boot";
+    public static final String PREF_DIMMABLE = "dimmable";
+    public static final int SERVICE_NOTIFICATION_ID = R.string.app_name;
 
     public static List<AppItem> getAppItems(Context context,
                                             Map<String, AppItem> items)
