@@ -13,6 +13,10 @@ import com.github.jgeboski.insomnia.model.AppItem;
 public class MainThread
     extends Thread
 {
+    public static final long TIMEOUT_MAX =
+        /* The maximum time supported by Android */
+        (((long) Integer.MAX_VALUE) * 1000) - 1;
+
     public MainService service;
     public boolean running;
     public WakeLock block;
@@ -49,7 +53,7 @@ public class MainThread
                     releaseLock();
                 }
             } else {
-                timeout = Long.MAX_VALUE;
+                timeout = TIMEOUT_MAX;
                 releaseLock();
             }
 
