@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <CheckBoxPreference
+        android:defaultValue="true"
+	android:key="active"
+	android:summary="@string/pref_active_summary"
+	android:title="@string/pref_active_title" />
+    <CheckBoxPreference
+        android:defaultValue="true"
+	android:key="boot"
+	android:summary="@string/pref_boot_summary"
+	android:title="@string/pref_boot_title" />
+    <CheckBoxPreference
+        android:defaultValue="false"
+	android:key="dimmable"
+	android:summary="@string/pref_dimmable_summary"
+	android:title="@string/pref_dimmable_title" />
+</PreferenceScreen>

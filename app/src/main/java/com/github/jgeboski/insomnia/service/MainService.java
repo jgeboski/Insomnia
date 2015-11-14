@@ -9,9 +9,12 @@ import android.app.Service;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 
 import com.github.jgeboski.insomnia.Insomnia;
@@ -20,13 +23,16 @@ import com.github.jgeboski.insomnia.receiver.ScreenReceiver;
 
 public class MainService
     extends Service
+    implements OnSharedPreferenceChangeListener
 {
     public MainObserver observer;
     public MainThread thread;
     public Map<String, AppItem> items;
     public ScreenReceiver screceiver;
+    public SharedPreferences prefs;
 
     public long timeout;
+    public boolean dimmable;
 
     @Override
     public IBinder onBind(Intent intent)
@@ -39,31 +45,29 @@ public class MainService
     {
         super.onCreate();
         observer = new MainObserver(this);
-        thread = new MainThread(this);
         items = new HashMap<>();
         screceiver = new ScreenReceiver(this);
-
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_SCREEN_OFF);
-        filter.addAction(Intent.ACTION_SCREEN_ON);
 
         ContentResolver resolver = getContentResolver();
         String name = Settings.System.SCREEN_OFF_TIMEOUT;
         Uri uri = Settings.System.getUriFor(name);
         resolver.registerContentObserver(uri, true, observer);
-        reset();
 
-        Notification notice = getNotification();
-        startForeground(Insomnia.SERVICE_NOTIFICATION_ID, notice);
-        registerReceiver(screceiver, filter);
-        thread.start();
+        prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        prefs.registerOnSharedPreferenceChangeListener(this);
+        reset();
+        updateState();
     }
 
     @Override
     public void onDestroy()
     {
         super.onDestroy();
-        thread.close();
+
+        if (thread != null) {
+            thread.close();
+        }
+
         unregisterReceiver(screceiver);
         stopForeground(true);
 
@@ -75,6 +79,16 @@ public class MainService
     public int onStartCommand(Intent intent, int flags, int startId)
     {
         return START_STICKY;
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences prefs, String key)
+    {
+        if (key.equals("active")) {
+            updateState();
+        } else {
+            reset();
+        }
     }
 
     public List<AppItem> getAppItems()
@@ -92,8 +106,11 @@ public class MainService
         ContentResolver resolver = getContentResolver();
         String name = Settings.System.SCREEN_OFF_TIMEOUT;
         timeout = Settings.System.getLong(resolver, name, 60000);
+        dimmable = prefs.getBoolean("dimmable", false);
 
-        thread.reset();
+        if (thread != null) {
+            thread.reset();
+        }
     }
 
     public void update(AppItem item)
@@ -121,5 +138,34 @@ public class MainService
         }
 
         return notice.getNotification();
+    }
+
+    private void updateState()
+    {
+        if (!prefs.getBoolean("active", true)) {
+            if (thread == null) {
+                return;
+            }
+
+            thread.close();
+            stopForeground(true);
+            thread = null;
+            return;
+        }
+
+        if (thread != null) {
+            return;
+        }
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
+        filter.addAction(Intent.ACTION_SCREEN_ON);
+
+        Notification notice = getNotification();
+        startForeground(Insomnia.SERVICE_NOTIFICATION_ID, notice);
+        registerReceiver(screceiver, filter);
+
+        thread = new MainThread(this);
+        thread.start();
     }
 }

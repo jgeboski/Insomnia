@@ -11,42 +11,42 @@ public class MainThread
 {
     public MainService service;
     public boolean running;
+    public WakeLock block;
+    public WakeLock dlock;
 
     public MainThread(MainService service)
     {
         this.service = service;
-        this.running = true;
+        this.running = false;
+
+        PowerManager pm = (PowerManager)
+            service.getSystemService(Context.POWER_SERVICE);
+        int appid = service.getApplicationInfo().labelRes;
+        String tag = service.getString(appid);
+
+        block = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, tag);
+        dlock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, tag);
     }
 
     @Override
     public void run()
     {
-        int appid = service.getApplicationInfo().labelRes;
-        String tag = service.getString(appid);
         long timeout;
-
-        PowerManager pm = (PowerManager)
-            service.getSystemService(Context.POWER_SERVICE);
-        WakeLock lock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, tag);
+        running = true;
 
         while (running) {
             if (Util.isScreenOn(service)) {
-                boolean hasapps = service.hasRunningAppItems();
-
-                if (hasapps && !lock.isHeld()) {
-                    lock.acquire();
-                } else if (!hasapps && lock.isHeld()) {
-                    lock.release();
+                if (service.hasRunningAppItems()) {
+                    acquireLock();
+                } else {
+                    releaseLock();
                 }
 
                 /* Reset before the screen sleeps */
                 timeout = service.timeout - 1500;
             } else {
-                if (lock.isHeld()) {
-                    lock.release();
-                }
-
                 timeout = Long.MAX_VALUE;
+                releaseLock();
             }
 
             try {
@@ -75,6 +75,40 @@ public class MainThread
         try {
             join();
         } catch (InterruptedException e) {
+        }
+
+        releaseLock();
+    }
+
+    private void acquireLock()
+    {
+        if (service.dimmable) {
+            if (block.isHeld()) {
+                block.release();
+            }
+
+            if (!dlock.isHeld()) {
+                dlock.acquire();
+            }
+        } else {
+            if (dlock.isHeld()) {
+                dlock.release();
+            }
+
+            if (!block.isHeld()) {
+                block.acquire();
+            }
+        }
+    }
+
+    private void releaseLock()
+    {
+        if (block.isHeld()) {
+            block.release();
+        }
+
+        if (dlock.isHeld()) {
+            dlock.release();
         }
     }
 }

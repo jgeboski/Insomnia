@@ -18,7 +18,7 @@
         android:layout_height="wrap_content"
         android:layout_width="wrap_content" />
 
-    <ImageButton
+    <Button
         android:id="@+id/button_active"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
@@ -26,7 +26,6 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentStart="true"
         android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:src="@drawable/disabled" />
+        android:layout_width="wrap_content" />
 
 </RelativeLayout>
