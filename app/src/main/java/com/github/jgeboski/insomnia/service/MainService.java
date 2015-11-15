@@ -17,6 +17,7 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 
+import com.github.jgeboski.insomnia.Database;
 import com.github.jgeboski.insomnia.Insomnia;
 import com.github.jgeboski.insomnia.model.AppItem;
 import com.github.jgeboski.insomnia.receiver.ScreenReceiver;
@@ -25,6 +26,7 @@ public class MainService
     extends Service
     implements OnSharedPreferenceChangeListener
 {
+    public Database db;
     public MainObserver observer;
     public MainThread thread;
     public Map<String, AppItem> items;
@@ -47,6 +49,13 @@ public class MainService
         observer = new MainObserver(this);
         items = new HashMap<>();
         screceiver = new ScreenReceiver(this);
+
+        db = new Database(this);
+        List<AppItem> sitems = db.getAppItems(this);
+
+        for (AppItem i : sitems) {
+            items.put(i.name, i);
+        }
 
         ContentResolver resolver = getContentResolver();
         String name = Settings.System.SCREEN_OFF_TIMEOUT;
@@ -73,6 +82,7 @@ public class MainService
 
         ContentResolver resolver = getContentResolver();
         resolver.unregisterContentObserver(observer);
+        db.close();
     }
 
     @Override
@@ -127,8 +137,10 @@ public class MainService
         if (item.active || (item.timeout > 0)) {
             item.reset();
             items.put(item.name, item);
+            db.update(item);
         } else {
             items.remove(item.name);
+            db.remove(item);
         }
 
         updateState();
