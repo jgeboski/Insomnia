@@ -1,4 +1,45 @@
-An android application for keeping the screen of a device awake.
+An android application which keeps the screen of the device awake based
+on the applications currently running.
+
+## Usage
+
+After installing the Insomnia APK, launch it to start the configuration
+interface. At this point, there will be a list of applications which
+are installed on the device. It is worth noting, only applications with
+a launcher will show up in the list. At the bottom of the list, there
+is an inactive/active button, which toggles the global active state of
+the Insomnia service. If this is set to "inactive," the service will
+not run, regardless of the configured applications. Before proceeding,
+it is recommended the button be toggled to "active" in order to allow
+the Insomnia service to function.
+
+Pressing on an application in the list toggles its active state. Each
+application has a status icon to right of the application name, which
+represents its active state. If the icon is green, the application is
+currently active, and if the icon is red, the application is currently
+inactive. When an application is set to active, the Insomnia service
+will monitor the list of running applications on the device for the
+active application. If the application is found to be running by the
+service, a wake lock will be imposed on the device, keeping the screen
+awake.
+
+In addition to the basic toggle functionality, an application can have
+a timeout assigned to it by long pressing on an application item. The
+timeout ensures the Insomnia service only holds the screen wake lock
+for the application for the length timeout value. The default for each
+application is a timeout of "None," which means the application has an
+infinite value for its timeout. If the screen timeout on the device is
+greater than the timeout value, the application will never hold the
+screen awake. There is no priority with the timeouts, which means the
+highest timeout value will be the only timeout value used for removing
+the screen wake lock.
+
+Along with the per application settings, there are Insomnia settings,
+which can be set via the settings interface in the options menu. There
+is an option to set the active state of Insomnia (this is the same as
+the inactive/active button), an option to enable the automated starting
+of the Insomnia service at boot, and an option to allow the dimming of
+the screen while it is under a wake lock.
 
 ## Building
 
