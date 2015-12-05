@@ -19,7 +19,6 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.os.Build;
 import android.os.PowerManager;
-import android.util.Log;
 import android.widget.Toast;
 
 public class Util
@@ -217,7 +216,6 @@ public class Util
     private static Set<String> getRunningApps21(Context context)
     {
         int appid = context.getApplicationInfo().labelRes;
-        String tag = context.getString(appid);
 
         File file = new File("/proc");
         Set<String> apps = new HashSet<>();
@@ -227,7 +225,7 @@ public class Util
         try {
             files = file.listFiles();
         } catch (SecurityException e) {
-            Log.e(tag, "Failed to read procfs", e);
+            Log.error("Failed to read procfs: %s", e.getMessage());
             return apps;
         }
 

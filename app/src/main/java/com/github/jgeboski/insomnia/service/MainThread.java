@@ -7,6 +7,7 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 
 import com.github.jgeboski.insomnia.Insomnia;
+import com.github.jgeboski.insomnia.Log;
 import com.github.jgeboski.insomnia.Util;
 import com.github.jgeboski.insomnia.model.AppItem;
 
@@ -42,6 +43,8 @@ public class MainThread
         long timeout;
         running = true;
 
+        Log.info("Service thread started");
+
         while (running) {
             if (Util.isScreenOn(service)) {
                 List<AppItem> items = service.getRunningAppItems();
@@ -58,10 +61,13 @@ public class MainThread
             }
 
             try {
+                Log.debug("Sleeping for %d ms", timeout);
                 sleep(timeout);
             } catch (InterruptedException e) {
             }
         }
+
+        Log.info("Service thread stopped");
     }
 
     public void reset()
@@ -90,32 +96,26 @@ public class MainThread
 
     private void acquireLock()
     {
-        if (service.dimmable) {
-            if (block.isHeld()) {
-                block.release();
-            }
-
-            if (!dlock.isHeld()) {
-                dlock.acquire();
-            }
-        } else {
-            if (dlock.isHeld()) {
-                dlock.release();
-            }
-
-            if (!block.isHeld()) {
-                block.acquire();
-            }
+        if (!service.dimmable && !block.isHeld()) {
+            releaseLock();
+            Log.info("Acquiring bright wake lock");
+            block.acquire();
+        } else if (service.dimmable && !dlock.isHeld()) {
+            releaseLock();
+            Log.info("Acquiring dim wake lock");
+            dlock.acquire();
         }
     }
 
     private void releaseLock()
     {
         if (block.isHeld()) {
+            Log.info("Releasing bright wake lock");
             block.release();
         }
 
         if (dlock.isHeld()) {
+            Log.info("Releasing dim wake lock");
             dlock.release();
         }
     }
