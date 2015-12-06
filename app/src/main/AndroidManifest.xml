@@ -42,5 +42,4 @@
             android:name=".service.MainService">
         </service>
     </application>
-
 </manifest>
